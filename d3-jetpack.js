@@ -92,70 +92,83 @@
         };
     }
 
-    d3.wordwrap = function(line, maxCharactersPerLine) {
-        var w = line.split(' '),
-            lines = [],
-            words = [],
-            maxChars = maxCharactersPerLine || 40,
-            l = 0;
-        w.forEach(function(d) {
-            if (l+d.length > maxChars) {
-                lines.push(words.join(' '));
-                words.length = 0;
-                l = 0;
-            }
-            l += d.length;
-            words.push(d);
+    // d3.wordwrap = function(line, maxCharactersPerLine) {
+    //     var w = line.split(' '),
+    //         lines = [],
+    //         words = [],
+    //         maxChars = maxCharactersPerLine || 40,
+    //         l = 0;
+    //     w.forEach(function(d) {
+    //         if (l+d.length > maxChars) {
+    //             lines.push(words.join(' '));
+    //             words.length = 0;
+    //             l = 0;
+    //         }
+    //         l += d.length;
+    //         words.push(d);
+    //     });
+    //     if (words.length) {
+    //         lines.push(words.join(' '));
+    //     }
+    //     return lines;
+    // };
+    //
+    // d3.ascendingKey = function(key) {
+    //     return typeof key == 'function' ? function (a, b) {
+    //           return key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : key(a) >= key(b) ? 0 : NaN;
+    //     } : function (a, b) {
+    //           return a[key] < b[key] ? -1 : a[key] > b[key] ? 1 : a[key] >= b[key] ? 0 : NaN;
+    //     };
+    // };
+    //
+    // d3.descendingKey = function(key) {
+    //     return typeof key == 'function' ? function (a, b) {
+    //         return key(b) < key(a) ? -1 : key(b) > key(a) ? 1 : key(b) >= key(a) ? 0 : NaN;
+    //     } : function (a, b) {
+    //         return b[key] < a[key] ? -1 : b[key] > a[key] ? 1 : b[key] >= a[key] ? 0 : NaN;
+    //     };
+    // };
+
+    d3.selection.prototype.select_or_append = function(name) {
+      if (this.select(name).empty()) {
+        var n = d3_parse_attributes(name), s;
+        name = n.attr ? n.tag : name;
+        name = d3_selection_creator(name);
+        s = this.select(function() {
+          return this.appendChild(name.apply(this, arguments));
         });
-        if (words.length) {
-            lines.push(words.join(' '));
-        }
-        return lines;
-    };
+        return n.attr ? s.attr(n.attr) : s;
+      }
+      return this.select(name)
+    }
     
-    d3.ascendingKey = function(key) {
-        return typeof key == 'function' ? function (a, b) {
-              return key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : key(a) >= key(b) ? 0 : NaN;
-        } : function (a, b) {
-              return a[key] < b[key] ? -1 : a[key] > b[key] ? 1 : a[key] >= b[key] ? 0 : NaN;
-        };
-    };
-
-    d3.descendingKey = function(key) {
-        return typeof key == 'function' ? function (a, b) {
-            return key(b) < key(a) ? -1 : key(b) > key(a) ? 1 : key(b) >= key(a) ? 0 : NaN;
-        } : function (a, b) {
-            return b[key] < a[key] ? -1 : b[key] > a[key] ? 1 : b[key] >= a[key] ? 0 : NaN;
-        };
-    };
-    
-    d3.f = function(){
-        var functions = arguments;
-        //convert all string arguments into field accessors
-        var i = 0, l = functions.length;
-        while (i < l) {
-            if (functions[i] in d3.f._) {
-                functions[i] = (function(f){ return function(d){ return f(d); }; })(d3.f._[functions[i]]);
-            } else if (typeof(functions[i]) === 'string' || typeof(functions[i]) === 'number'){
-                functions[i] = (function(str){ return function(d){ return d[str]; }; })(functions[i]);
-            } else if (typeof(functions[i]) === 'object'){
-                functions[i] = (function(map){ return function(d){ return map[d]; }; })(functions[i]);
-            }
-            i++;
-        }
-         //return composition of functions
-        return function(d) {
-            var i=0, l = functions.length;
-            while (i++ < l) d = functions[i-1].call(this, d);
-            return d;
-        };
-    };
-
-    // special operator functions
-    d3.f._ = {
-        'ƒ.call': function(d) { return d(); },
-        'ƒ.not': function(d) { return !d; }
-    };
+    // d3.f = function(){
+    //     var functions = arguments;
+    //     //convert all string arguments into field accessors
+    //     var i = 0, l = functions.length;
+    //     while (i < l) {
+    //         if (functions[i] in d3.f._) {
+    //             functions[i] = (function(f){ return function(d){ return f(d); }; })(d3.f._[functions[i]]);
+    //         } else if (typeof(functions[i]) === 'string' || typeof(functions[i]) === 'number'){
+    //             functions[i] = (function(str){ return function(d){ return d[str]; }; })(functions[i]);
+    //         } else if (typeof(functions[i]) === 'object'){
+    //             functions[i] = (function(map){ return function(d){ return map[d]; }; })(functions[i]);
+    //         }
+    //         i++;
+    //     }
+    //      //return composition of functions
+    //     return function(d) {
+    //         var i=0, l = functions.length;
+    //         while (i++ < l) d = functions[i-1].call(this, d);
+    //         return d;
+    //     };
+    // };
+    //
+    // // special operator functions
+    // d3.f._ = {
+    //     'ƒ.call': function(d) { return d(); },
+    //     'ƒ.not': function(d) { return !d; }
+    // };
     
     // store d3.f as convenient unicode character function (alt-f on macs)
     if (typeof window !== 'undefined' && !window.hasOwnProperty('ƒ')) window.ƒ = d3.f;
@@ -182,9 +195,9 @@
         return this.selectAll(name).data(data).enter().append(name);
     };
     
-    d3.round = d3.round || function(n, p) {
-        return p ? Math.round(n * (p = Math.pow(10, p))) / p : Math.round(n);
-    };
+    // d3.round = d3.round || function(n, p) {
+    //     return p ? Math.round(n * (p = Math.pow(10, p))) / p : Math.round(n);
+    // };
 
     return d3;
 
